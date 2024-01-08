@@ -1,0 +1,30 @@
+server:
+  port: 88
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user_route
+          uri: lb://brainU-user
+          predicates:
+            - Path=/user/**
+          filters:
+            - RewritePath=/user/(?<segment>.*), /$\{segment}
+        - id: tumorSegment_route
+          uri: lb://brainU-tumorSegment
+          predicates:
+            - Path=/tumor/**
+          filters:
+            - RewritePath=/tumor/(?<segment>.*), /$\{segment}
+        - id: model_route
+          uri: lb://brainU-model
+          predicates:
+            - Path=/model/**
+          filters:
+            - RewritePath=/model/(?<segment>.*), /$\{segment}
+        - id: auth_route
+          uri: lb://brainU-auth
+          predicates:
+            - Path=/auth/**
+          filters:
+            - RewritePath=/auth/(?<segment>.*), /$\{segment}
