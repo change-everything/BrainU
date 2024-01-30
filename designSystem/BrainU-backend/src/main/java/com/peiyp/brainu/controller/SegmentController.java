@@ -19,7 +19,7 @@ import java.util.Map;
  * @since 2023年03月16日 17:33
  */
 @RestController
-@RequestMapping("/segment")
+@RequestMapping("/tumor/segment")
 public class SegmentController {
 
     @Resource

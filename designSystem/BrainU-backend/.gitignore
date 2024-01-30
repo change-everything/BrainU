@@ -1,8 +1,10 @@
 HELP.md
 target/
-!.mvn/wrapper/maven-wrapper.jar
+*.mvn/
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/resource/application-local.yml
+
 
 ### STS ###
 .apt_generated
@@ -31,3 +33,4 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/main/resources/application-local.yml

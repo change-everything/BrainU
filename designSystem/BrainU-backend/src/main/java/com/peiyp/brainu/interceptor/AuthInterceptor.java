@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author PeiYP
@@ -27,9 +28,14 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
+        String requestURI = request.getRequestURI();
+        if ("/auth/login".equals(requestURI) || "openapi".contains(requestURI)) {
+            return true;
+        }
         String authorization = request.getHeader("Authorization");
         String token = authorization.replace("Bearer ", "");
         Claims user = JWTUtil.parseToken(token, "USER");
@@ -78,21 +84,21 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
 
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        String authorization = request.getHeader("Authorization");
-        String token = authorization.replace("Bearer ", "");
-        Claims user = JWTUtil.parseToken(token, "USER");
-        if (user != null) {
-            long exp = user.getExpiration().getTime();
-            long now = new Date().getTime();
-            long current = exp - now;
-            LocalDateTime localDateTime = LocalDateTimeUtil.ofUTC(current);
-            int minute = localDateTime.getMinute();
-            if (minute < 10) {
-                String newToken = JWTUtil.createToken(Long.valueOf(user.getSubject()), "USER", 30);
-                response.addHeader("newToken", newToken);
-            }
-        }
-    }
+//    @Override
+//    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+//        String authorization = request.getHeader("Authorization");
+//        String token = authorization.replace("Bearer ", "");
+//        Claims user = JWTUtil.parseToken(token, "USER");
+//        if (user != null) {
+//            long exp = user.getExpiration().getTime();
+//            long now = new Date().getTime();
+//            long current = exp - now;
+//            LocalDateTime localDateTime = LocalDateTimeUtil.ofUTC(current);
+//            int minute = localDateTime.getMinute();
+//            if (minute < 10) {
+//                String newToken = JWTUtil.createToken(Long.valueOf(user.getSubject()), "USER", 30);
+//                response.addHeader("newToken", newToken);
+//            }
+//        }
+//    }
 }
