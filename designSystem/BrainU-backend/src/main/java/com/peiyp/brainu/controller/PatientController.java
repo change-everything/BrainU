@@ -13,7 +13,7 @@ import javax.annotation.Resource;
  * @since 2023年04月07日 23:09
  */
 @RestController
-@RequestMapping("/patient")
+@RequestMapping("/user/patient")
 public class PatientController {
 
     @Resource

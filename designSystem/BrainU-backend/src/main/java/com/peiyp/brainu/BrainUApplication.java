@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
 @SpringBootApplication
-@MapperScan("com.peiyp.brainuuser.mapper")
+@MapperScan("com.peiyp.brainu.mapper")
 public class BrainUApplication {
 
     public static void main(String[] args) {

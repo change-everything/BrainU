@@ -19,7 +19,7 @@ import java.util.List;
  * @since 2023-05-06
  */
 @RestController
-@RequestMapping("/modelInfo")
+@RequestMapping("/model/modelInfo")
 public class ModelInfoController {
 
     @Resource

@@ -20,7 +20,7 @@ import java.util.List;
  * @since 2023-04-08
  */
 @RestController
-@RequestMapping("/doctor-info")
+@RequestMapping("/user/doctor-info")
 public class DoctorInfoController {
 
     @Resource

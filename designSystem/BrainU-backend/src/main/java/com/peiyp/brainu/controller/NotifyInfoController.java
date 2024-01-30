@@ -21,7 +21,7 @@ import java.util.List;
  * @since 2023-05-22
  */
 @RestController
-@RequestMapping("/notify-info")
+@RequestMapping("/tumor/notify-info")
 public class NotifyInfoController {
 
     @Autowired

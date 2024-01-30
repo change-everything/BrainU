@@ -1,5 +1,6 @@
 package com.peiyp.brainu.util;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
