@@ -49,7 +49,7 @@ public class SegmentServiceImpl implements SegmentService {
     public static String path = "";
 
 
-    public static final String ROOT_PATH = "D:/GraduationDesign/picture/uploadPath/";
+    public static final String ROOT_PATH = System.getProperty("user.dir");
 
     @Override
     @Transactional(rollbackFor = RuntimeException.class)

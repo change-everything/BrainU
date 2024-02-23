@@ -11,7 +11,7 @@
           <span style="font-size:small;">2023年3月15日</span>
           <br>
           <p style="line-height: 160px;"></p>
-          <span style="font-size:small;">Copyright(C) 2023</span>
+          <span style="font-size:small;">Copyright(C) 2024</span>
           <br>
           <span style="font-size:small;">裴永鹏毕业设计作品</span>
           <br>
@@ -22,6 +22,7 @@
             天津中德应用技术大学<br>
             软件与通信学院<br>
             2019级软件工程5班<br>
+            <a href="https://beian.miit.gov.cn/#/Integrated/index">津ICP备2024012731号</a>
           </span>
         </div>
       </el-aside>

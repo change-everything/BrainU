@@ -33,7 +33,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         String requestURI = request.getRequestURI();
-        if ("/auth/login".equals(requestURI) || "openapi".contains(requestURI)) {
+        if (requestURI.contains("/auth/login") || "openapi".contains(requestURI)) {
             return true;
         }
         String authorization = request.getHeader("Authorization");
