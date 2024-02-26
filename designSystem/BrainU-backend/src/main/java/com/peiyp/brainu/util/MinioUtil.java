@@ -319,6 +319,7 @@ public class MinioUtil {
      * @return 访问url
      */
     public String getUploadedObjectUrl(String bucketName, String bucketFileName, Integer expiry, TimeUnit timeUnit) {
+
         GetPresignedObjectUrlArgs urlArgs = GetPresignedObjectUrlArgs.builder()
                 .method(Method.GET)
                 .bucket(bucketName)
