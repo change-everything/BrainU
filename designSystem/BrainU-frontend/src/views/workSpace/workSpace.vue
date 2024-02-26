@@ -40,8 +40,8 @@
                 </el-table-column>
                 <el-table-column prop="patientGender" label="患者性别" align="center">
                     <template slot-scope="scope">
-                        <el-tag v-if="scope.row.patientGender == 0" type="danger">女</el-tag>
-                        <el-tag v-if="scope.row.patientGender == 1">男</el-tag>
+                        <el-tag v-if="scope.row.patientGender === 0" type="danger">女</el-tag>
+                        <el-tag v-if="scope.row.patientGender === 1">男</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column prop="patientPhone" label="患者电话" align="center">
@@ -242,15 +242,15 @@ export default {
         },
         handleCommand(val) {
             console.log(val)
-            if (val.command == 'preview') {
+            if (val.command === 'preview') {
                 this.handlePreview(val.row);
-            } else if (val.command == 'update') {
+            } else if (val.command === 'update') {
                 console.log(val.row)
                 this.handleUpdate(val.row);
-            } else if (val.command == 'delete') {
+            } else if (val.command === 'delete') {
                 console.log(val.row)
                 this.handleDelete(val.row);
-            } else if (val.command == 'download') {
+            } else if (val.command === 'download') {
                 console.log(val.row)
                 this.handleDownload(val.row);
             }

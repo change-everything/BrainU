@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-dialog :visible.sync="dialogVisible" width="70%" :before-close="handleClose" :close-on-click-modal="false"
-            :close-on-press-escape="false" top="0vh" :fullscreen="false" style="position: absolute; z-index: 0;"
+            :close-on-press-escape="false" top="0vh" :fullscreen="false" style="position: absolute; z-index: 9999;"
             @close="dialogClose()" @open="open()" destroy-on-close>
             <div style="margin-left: 20vh; width: 100vh; height: 100vh;">
                 <div class="out1" id="seDiv">
@@ -11,11 +11,11 @@
                     <span class="postitonText" style="margin-left: 20vh; margin-top: 38vh;">P</span>
                     <div style="position: absolute; z-index: 999; width: 40vh; height: 40vh;"
                         @mousewheel="handleMouseWheel1">
-                        <div class="coordinateX" id="seX" style="top: 117px"></div>
-                        <div class="coordinateY" id="seY" style="left: 96px"></div>
+                        <div class="coordinateX" id="seX" :style="`bottom:${seIndex}px`"></div>
+                        <div class="coordinateY" id="seY"></div>
                     </div>
                     <div ref="scrollDiv1" class="div1" v-for="(item, key) in semgentUrls" :key="'se-' + key">
-                        <el-image class="image1" :src="item" v-show="seIndex == key">
+                        <el-image class="image1" :src="item" v-show="seIndex === key">
                         </el-image>
                     </div>
                     <el-link v-if="isSeRender" id="selink" :underline="false" icon="el-icon-view"
@@ -36,8 +36,8 @@
                     <span class="postitonText" style="margin-left: 20vh; margin-top: 38vh;">P</span>
                     <div style="position: absolute; z-index: 999; width: 40vh; height: 40vh;"
                         @mousewheel="handleMouseWheel3">
-                        <div class="coordinateX" id="sideX" style="top: 60px"></div>
-                        <div class="coordinateY" id="sideY" style="left: 117px"></div>
+                        <div class="coordinateX" id="sideX"></div>
+                        <div class="coordinateY" id="sideY"></div>
                     </div>
                     <div class="div2" v-for="(item, key) in sideUrls" :key="'side' + key">
                         <el-image class="image2" :src="item" v-show="sideIndex == key">
@@ -61,8 +61,8 @@
                     <span class="postitonText" style="margin-left: 20vh; margin-top: 38vh;">I</span>
                     <div style="position: absolute; z-index: 999; width: 40vh; height: 40vh;"
                         @mousewheel="handleMouseWheel2">
-                        <div class="coordinateX" id="fontX" style="top: 150px"></div>
-                        <div class="coordinateY" id="fontY" style="left: 96px"></div>
+                        <div class="coordinateX" id="fontX"></div>
+                        <div class="coordinateY" id="fontY"></div>
                     </div>
                     <div class="div3" v-for="(item, key) in fontUrls" :key="'font-' + key">
                         <el-image class="image3" :src="item" v-show="fontIndex == key">
@@ -129,19 +129,19 @@ export default {
     watch: {
         seIndex(value, oldValue) {
             // 第一个参数为新值，第二个参数为旧值，不能调换顺序
-            if (this.seIndex != 77) {
+            if (this.seIndex !== 77) {
                 setYPosition(oldValue - value)
             }
         },
         fontIndex(value, oldValue) {
             // 第一个参数为新值，第二个参数为旧值，不能调换顺序
-            if (this.fontIndex != 120) {
+            if (this.fontIndex !== 120) {
                 setXPosition(oldValue - value)
             }
         },
         sideIndex(value, oldValue) {
             // 第一个参数为新值，第二个参数为旧值，不能调换顺序
-            if (this.sideIndex != 120) {
+            if (this.sideIndex !== 120) {
                 setZPosition(oldValue - value)
             }
         }
@@ -293,12 +293,12 @@ export default {
             console.log(tab, event);
         },
         handleClose(done) {
-            this.$confirm('是否关闭页面？', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消'
-            }).then(() => {
+            // this.$confirm('是否关闭页面？', '提示', {
+            //     confirmButtonText: '确定',
+            //     cancelButtonText: '取消'
+            // }).then(() => {
                 done();
-            }).catch(() => { });
+            // }).catch(() => { });
         },
         getFile(rootPath) {
             getPicUrl(rootPath).then(res => {
