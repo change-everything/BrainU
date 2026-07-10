@@ -1,5 +1,5 @@
 
-![logo.png](designSystem%2FBrainU-backend%2Fimg%2Flogo.png)
+![logo.png](designSystem/BrainU-backend/img/logo.png)
 
 
 # brainU
@@ -9,19 +9,19 @@
 
 ## 模型训练
 ### Multi-modal U-Net
-![mmunet.png](designSystem%2FBrainU-backend%2Fimg%2Fmmunet.png)
+![mmunet.png](designSystem/BrainU-backend/img/mmunet.png)
 #### 复现
 ##### 模型参数结构表
-![paaramtable.png](designSystem%2FBrainU-backend%2Fimg%2Fpaaramtable.png)
-![table2.png](designSystem%2FBrainU-backend%2Fimg%2Ftable2.png)
-![table3.png](designSystem%2FBrainU-backend%2Fimg%2Ftable3.png)
+![paaramtable.png](designSystem/BrainU-backend/img/paaramtable.png)
+![table2.png](designSystem/BrainU-backend/img/table2.png)
+![table3.png](designSystem/BrainU-backend/img/table3.png)
 
 ##### 训练环境
-![env.png](designSystem%2FBrainU-backend%2Fimg%2Fenv.png)
-![env2.png](designSystem%2FBrainU-backend%2Fimg%2Fenv2.png)
+![env.png](designSystem/BrainU-backend/img/env.png)
+![env2.png](designSystem/BrainU-backend/img/env2.png)
 
 ##### 神经网络结构参数
-![unetparams.png](designSystem%2FBrainU-backend%2Fimg%2Funetparams.png)
+![unetparams.png](designSystem/BrainU-backend/img/unetparams.png)
 - batch_size:指定每次训练时使用的样本数。较大的 batch_size 能够提高训练速度，
 但可能会降低模型的准确性。
 - epoch: 指定训练的轮数。每一轮训练都会使用全部的训练数据，这有助于模型逐渐
@@ -39,7 +39,7 @@
 ##### 实验结果
 - Multi-modal U-Net脑部胶质瘤分割示例，从左到右分别为磁共振成像液体衰减反转序
   列、T1 加权成像、T1c造影剂成像、T2 加权成像、模型预测的肿瘤掩模图以及真实的肿瘤掩模图
-![result.png](designSystem%2FBrainU-backend%2Fimg%2Fresult.png)
+![result.png](designSystem/BrainU-backend/img/result.png)
 
 - IoU 测量每个类别的预测标签和
   地面实况标签之间的重叠。发现标签 0 的 IoU 为 99.6%，表明该模型准确地识别了此类。
@@ -47,25 +47,25 @@
   确识别这些类，尽管还有一些改进的空间。另一方面，发现标签 4 的 IoU 为 87.2%，表明
   该模型能够准确识别这一类别。
 
-![result1.png](designSystem%2FBrainU-backend%2Fimg%2Fresult1.png)
+![result1.png](designSystem/BrainU-backend/img/result1.png)
 
 
 
 ## 架构图
-![system.png](designSystem%2FBrainU-backend%2Fimg%2Fsystem.png)
+![system.png](designSystem/BrainU-backend/img/system.png)
 
 ## 流程图
-![process.png](designSystem%2FBrainU-backend%2Fimg%2Fprocess.png)
+![process.png](designSystem/BrainU-backend/img/process.png)
 
 ## 模块设计图
-![design.png](designSystem%2FBrainU-backend%2Fimg%2Fdesign.png)
+![design.png](designSystem/BrainU-backend/img/design.png)
 
 ## 系统用例图
-![use.png](designSystem%2FBrainU-backend%2Fimg%2Fuse.png)
+![use.png](designSystem/BrainU-backend/img/use.png)
 
 ## 时序图
 ### 肿瘤分割
-![timep.png](designSystem%2FBrainU-backend%2Fimg%2Ftimep.png)
+![timep.png](designSystem/BrainU-backend/img/timep.png)
 
 
 ## 项目亮点
@@ -89,19 +89,19 @@
 
 ## 截图
 ### 登录
-![login.png](designSystem%2FBrainU-backend%2Fimg%2Flogin.png)
+![login.png](designSystem/BrainU-backend/img/login.png)
 ### 数据添加
-![add.png](designSystem%2FBrainU-backend%2Fimg%2Fadd.png)
-![add2.png](designSystem%2FBrainU-backend%2Fimg%2Fadd2.png)
+![add.png](designSystem/BrainU-backend/img/add.png)
+![add2.png](designSystem/BrainU-backend/img/add2.png)
 ### 工作空间
-![p1.png](designSystem%2FBrainU-backend%2Fimg%2Fp1.png)
-![p2.png](designSystem%2FBrainU-backend%2Fimg%2Fp2.png)
+![p1.png](designSystem/BrainU-backend/img/p1.png)
+![p2.png](designSystem/BrainU-backend/img/p2.png)
 ### 肿瘤交互
-![tumor.png](designSystem%2FBrainU-backend%2Fimg%2Ftumor.png)
+![tumor.png](designSystem/BrainU-backend/img/tumor.png)
 ### 模型管理
-![model.png](designSystem%2FBrainU-backend%2Fimg%2Fmodel.png)
+![model.png](designSystem/BrainU-backend/img/model.png)
 ### 医生管理
-![doctor.png](designSystem%2FBrainU-backend%2Fimg%2Fdoctor.png)
+![doctor.png](designSystem/BrainU-backend/img/doctor.png)
 
 ## 技术栈
 
