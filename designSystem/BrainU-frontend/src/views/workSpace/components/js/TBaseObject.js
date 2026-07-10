@@ -57,3 +57,9 @@ export function setYPosition(num) {
 export function setZPosition(num) {
     box2.position.z += num
 }
+
+export function resetPositions() {
+    box.position.set(0, 0, 0)
+    box1.position.set(0, 0, 0)
+    box2.position.set(0, 0, 0)
+}

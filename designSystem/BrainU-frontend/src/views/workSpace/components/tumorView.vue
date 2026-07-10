@@ -1,600 +1,191 @@
 <template>
-    <div>
-        <el-dialog :visible.sync="dialogVisible" width="70%" :before-close="handleClose" :close-on-click-modal="false"
-            :close-on-press-escape="false" top="0vh" :fullscreen="false" style="position: absolute; z-index: 9999;"
-            @close="dialogClose()" @open="open()" destroy-on-close>
-            <div style="margin-left: 20vh; width: 100vh; height: 100vh;">
-                <div class="out1" id="seDiv">
-                    <span class="postitonText" style="margin-left: 20vh;">A</span>
-                    <span class="postitonText" style="margin-top: 20vh;">R</span>
-                    <span class="postitonText" style="margin-left: 39vh; margin-top: 20vh;">L</span>
-                    <span class="postitonText" style="margin-left: 20vh; margin-top: 38vh;">P</span>
-                    <div style="position: absolute; z-index: 999; width: 40vh; height: 40vh;"
-                        @mousewheel="handleMouseWheel1">
-                        <div class="coordinateX" id="seX" :style="`bottom:${seIndex}px`"></div>
-                        <div class="coordinateY" id="seY"></div>
-                    </div>
-                    <div ref="scrollDiv1" class="div1" v-for="(item, key) in semgentUrls" :key="'se-' + key">
-                        <el-image class="image1" :src="item" v-show="seIndex === key">
-                        </el-image>
-                    </div>
-                    <el-link v-if="isSeRender" id="selink" :underline="false" icon="el-icon-view"
-                        style="margin-left: 41.2vh;" @click="previewPic('se')"></el-link>
-                    <el-link v-if="!isSeRender" id="selink" :underline="false" icon="el-icon-magic-stick"
-                        style="margin-left: 41.2vh;" @click="previewPic('se')"></el-link>
-                    <el-link id="selink" :underline="false" icon="el-icon-camera-solid" style="margin-left: 41.2vh;"
-                        @click="downloadSnap('se')"></el-link>
-                    <el-slider id="seSlider" class="sliderMain" :max="semgentLen" :show-tooltip="false" v-model="seIndex"
-                        vertical height="35vh" style="margin-left: 39vh;" @input="sliderchange1">
-                    </el-slider>
-                    <span class="text">{{ seIndex + 1 }} of {{ semgentUrls.length }}</span>
-                </div>
-                <div class="out2">
-                    <span class="postitonText" style="margin-left: 20vh;">S</span>
-                    <span class="postitonText" style="margin-top: 20vh;">A</span>
-                    <span class="postitonText" style="margin-left: 39vh; margin-top: 20vh;">I</span>
-                    <span class="postitonText" style="margin-left: 20vh; margin-top: 38vh;">P</span>
-                    <div style="position: absolute; z-index: 999; width: 40vh; height: 40vh;"
-                        @mousewheel="handleMouseWheel3">
-                        <div class="coordinateX" id="sideX"></div>
-                        <div class="coordinateY" id="sideY"></div>
-                    </div>
-                    <div class="div2" v-for="(item, key) in sideUrls" :key="'side' + key">
-                        <el-image class="image2" :src="item" v-show="sideIndex == key">
-                        </el-image>
-                    </div>
-                    <el-link v-if="isSideRender" id="selink" :underline="false" icon="el-icon-view"
-                        style="margin-left: 41.2vh;" @click="previewPic('seSide')"></el-link>
-                    <el-link v-if="!isSideRender" id="selink" :underline="false" icon="el-icon-magic-stick"
-                        style="margin-left: 41.2vh;" @click="previewPic('seSide')"></el-link>
-                    <el-link id="sidelink" :underline="false" icon="el-icon-camera-solid" style="margin-left: 41.2vh;"
-                        @click="downloadSnap('seSide')"></el-link>
-                    <el-slider class="sliderMain" :max="sideLen" :show-tooltip="false" v-model="sideIndex" vertical
-                        height="35vh" style="margin-left: 39vh;" @input="sliderchange3">
-                    </el-slider>
-                    <span class="text">{{ sideIndex + 1 }} of {{ sideUrls.length }}</span>
-                </div>
-                <div class="out3">
-                    <span class="postitonText" style="margin-left: 20vh;">S</span>
-                    <span class="postitonText" style="margin-top: 20vh;">R</span>
-                    <span class="postitonText" style="margin-left: 39vh; margin-top: 20vh;">L</span>
-                    <span class="postitonText" style="margin-left: 20vh; margin-top: 38vh;">I</span>
-                    <div style="position: absolute; z-index: 999; width: 40vh; height: 40vh;"
-                        @mousewheel="handleMouseWheel2">
-                        <div class="coordinateX" id="fontX"></div>
-                        <div class="coordinateY" id="fontY"></div>
-                    </div>
-                    <div class="div3" v-for="(item, key) in fontUrls" :key="'font-' + key">
-                        <el-image class="image3" :src="item" v-show="fontIndex == key">
-                        </el-image>
-                    </div>
-                    <el-link v-if="isFontRender" id="selink" :underline="false" icon="el-icon-view"
-                        style="margin-left: 41.2vh;" @click="previewPic('seFont')"></el-link>
-                    <el-link v-if="!isFontRender" id="selink" :underline="false" icon="el-icon-magic-stick"
-                        style="margin-left: 41.2vh;" @click="previewPic('seFont')"></el-link>
-                    <el-link id="fontlink" :underline="false" icon="el-icon-camera-solid" style="margin-left: 41.2vh;"
-                        @click="downloadSnap('seFont')"></el-link>
-                    <el-slider class="sliderMain" :max="fontLen" :show-tooltip="false" v-model="fontIndex" vertical
-                        height="35vh" style="margin-left: 39vh;" @input="sliderchange2">
-                    </el-slider>
-                    <span class="text">{{ fontIndex + 1 }} of {{ fontUrls.length }}</span>
-                </div>
-                <div class="out4">
-                    <div class="div4" ref="threeTarget">
-                    </div>
-                </div>
-            </div>
-        </el-dialog>
+  <el-dialog :visible.sync="dialogVisible" custom-class="medical-viewer-dialog" width="96%" top="2vh"
+    :close-on-click-modal="false" append-to-body @opened="initThreeScene" @closed="releaseViewer">
+    <template slot="title">
+      <div class="viewer-titlebar">
+        <div class="viewer-brand"><span class="viewer-logo">B</span><div><strong>BrainU 影像工作站</strong><small>多平面重建与肿瘤分割预览</small></div></div>
+        <div class="patient-summary">
+          <span><small>患者</small>{{ patient.patientName || '未命名' }}</span>
+          <span><small>病例号</small>{{ patient.id || '--' }}</span>
+          <span><small>影像序列</small>MRI · MPR</span>
+        </div>
+      </div>
+    </template>
+
+    <div class="viewer-toolbar">
+      <div class="tool-group"><button title="窗宽窗位"><i class="el-icon-s-operation"></i><span>窗宽窗位</span></button><button title="测量"><i class="el-icon-data-line"></i><span>测量</span></button><button title="复位"><i class="el-icon-refresh-left"></i><span>复位</span></button></div>
+      <div class="viewer-legend"><span class="legend-segment"></span>分割结果 <span class="legend-crosshair"></span>定位线</div>
     </div>
+
+    <div v-loading="studyLoading" element-loading-text="正在读取影像序列…" element-loading-background="rgba(5, 14, 20, .88)" class="viewer-grid">
+      <slice-viewport title="轴位" subtitle="AXIAL" :urls="semgentUrls" v-model="seIndex" :segmented="isSeRender"
+        :crosshair-x="slicePercent(sideIndex, sideUrls)" :crosshair-y="slicePercent(fontIndex, fontUrls)"
+        :orientation="{ top:'A', right:'L', bottom:'P', left:'R' }" @toggle="toggleSeries('se')" @download="downloadCurrent('se')" />
+      <slice-viewport title="矢状位" subtitle="SAGITTAL" :urls="sideUrls" v-model="sideIndex" :segmented="isSideRender"
+        :crosshair-x="slicePercent(fontIndex, fontUrls)" :crosshair-y="100 - slicePercent(seIndex, semgentUrls)"
+        :orientation="{ top:'S', right:'I', bottom:'I', left:'A' }" @toggle="toggleSeries('seSide')" @download="downloadCurrent('seSide')" />
+      <slice-viewport title="冠状位" subtitle="CORONAL" :urls="fontUrls" v-model="fontIndex" :segmented="isFontRender"
+        :crosshair-x="slicePercent(sideIndex, sideUrls)" :crosshair-y="100 - slicePercent(seIndex, semgentUrls)"
+        :orientation="{ top:'S', right:'L', bottom:'I', left:'R' }" @toggle="toggleSeries('seFont')" @download="downloadCurrent('seFont')" />
+
+      <section class="volume-viewport">
+        <header><div><span></span><strong>三维定位</strong><small>3D LOCALIZER</small></div><em>拖拽旋转 · 滚轮缩放</em></header>
+        <div ref="threeTarget" class="three-stage"></div>
+        <footer><span><i></i>X 轴</span><span><i></i>Y 轴</span><span><i></i>Z 轴</span></footer>
+      </section>
+    </div>
+
+    <div class="viewer-statusbar"><span><i class="status-online"></i>影像数据已加密加载</span><span>滚轮浏览切片 · 相邻 2 帧智能预取</span><span>{{ totalSlices }} 张切片</span></div>
+  </el-dialog>
 </template>
+
 <script>
-import { getPicUrl, downloadPic, changePicUrl } from "@/api/segment";
+import { getPicUrl, downloadPic, changePicUrl } from '@/api/segment'
+import SliceViewport from './sliceViewport'
 import { ThreeEngine } from './js/TEngine'
 import { allLights } from './js/TLights'
-import { allBaseObject, setXPosition, setYPosition, setZPosition } from './js/TBaseObject'
+import { allBaseObject, resetPositions, setXPosition, setYPosition, setZPosition } from './js/TBaseObject'
+
 export default {
-    name: 'TumorView',
-    components: {
-
-    },
-    mixins: [],
-    props: {
-
-    },
-    data() {
-        return {
-            dialogVisible: false,
-            timer: null,
-            newPic: 0,
-            seIndex: 77,
-            fontIndex: 120,
-            sideIndex: 120,
-            semgentUrls: [],
-            fontUrls: [],
-            sideUrls: [],
-            semgentLen: 0,
-            fontLen: 0,
-            sideLen: 0,
-            rootPath: '',
-            fullscreenLoading: false,
-            isSeRender: true,
-            isSideRender: true,
-            isFontRender: true,
-            ThreeEngine: null
-        }
-    },
-    computed: {
-
-    },
-    watch: {
-        seIndex(value, oldValue) {
-            // 第一个参数为新值，第二个参数为旧值，不能调换顺序
-            if (this.seIndex !== 77) {
-                setYPosition(oldValue - value)
-            }
-        },
-        fontIndex(value, oldValue) {
-            // 第一个参数为新值，第二个参数为旧值，不能调换顺序
-            if (this.fontIndex !== 120) {
-                setXPosition(oldValue - value)
-            }
-        },
-        sideIndex(value, oldValue) {
-            // 第一个参数为新值，第二个参数为旧值，不能调换顺序
-            if (this.sideIndex !== 120) {
-                setZPosition(oldValue - value)
-            }
-        }
-    },
-    mounted() {
-
-
-    },
-    methods: {
-        openFullScreen() {
-            let loading = this.$loading({
-                lock: true,
-                text: '数据加载中，请稍后...',
-                spinner: 'el-icon-loading',
-                background: 'rgba(255, 255, 255, 255)'
-            });
-            setTimeout(() => {
-                this.dialogVisible = true;
-            }, 1000);
-            setTimeout(() => {
-                console.log("调用")
-                loading.close();
-                this.$message({
-                    showClose: true,
-                    message: '加载完成',
-                    type: 'success'
-                });
-            }, 10000);
-
-        },
-        previewPic(key) {
-            let tmpPath = ""
-            let loading = this.$loading({
-                lock: true,
-                text: '数据加载中，请稍后...',
-                spinner: 'el-icon-loading',
-                background: 'rgba(255, 255, 255, 255)'
-            });
-            if (key === 'se') {
-                if (this.isSeRender) {
-                    tmpPath = this.rootPath + "/original"
-                    this.isSeRender = false
-                } else {
-                    tmpPath = this.rootPath
-                    this.isSeRender = true
-                }
-                changePicUrl(tmpPath, key).then(res => {
-                    this.semgentUrls = res.data.data;
-                })
-            } else if (key === 'seSide') {
-                if (this.isSideRender) {
-                    tmpPath = this.rootPath + "/original"
-                    this.isSideRender = false
-                } else {
-                    tmpPath = this.rootPath
-                    this.isSideRender = true
-                }
-                changePicUrl(tmpPath, key).then(res => {
-                    this.sideUrls = res.data.data;
-                })
-            } else if (key === 'seFont') {
-                if (this.isFontRender) {
-                    tmpPath = this.rootPath + "/original"
-                    this.isFontRender = false
-                } else {
-                    tmpPath = this.rootPath
-                    this.isFontRender = true
-                }
-                changePicUrl(tmpPath, key).then(res => {
-                    this.fontUrls = res.data.data;
-                })
-            }
-            setTimeout(() => {
-                console.log("调用")
-                loading.close();
-                this.$message({
-                    showClose: true,
-                    message: '加载完成',
-                    type: 'success'
-                });
-            }, 3000);
-        },
-        downloadSnap(path) {
-            let index = '';
-            let tmpPath = '';
-            if (path === 'se') {
-                if (!this.isSeRender) {
-                    tmpPath = this.rootPath + "/original"
-                } else {
-                    tmpPath = this.rootPath
-                }
-                index = this.seIndex;
-            } else if (path === 'seSide') {
-                if (!this.isSideRender) {
-                    tmpPath = this.rootPath + "/original"
-                } else {
-                    tmpPath = this.rootPath
-                }
-                index = this.sideIndex;
-            } else if (path === 'seFont') {
-                if (!this.isFontRender) {
-                    tmpPath = this.rootPath + "/original"
-                } else {
-                    tmpPath = this.rootPath
-                }
-                index = this.fontIndex;
-            }
-            let fileName = "image_" + index + ".png";
-            let bucketFileName = tmpPath + "/" + path + "/" + fileName;
-            let originalFileName = new Date().getTime() + ".png";
-            downloadPic(bucketFileName, originalFileName).then(res => {
-                this.resolveBlob(res, originalFileName)
-            })
-        },
-
-        resolveBlob(res, fileName) {
-            const aLink = document.createElement('a')
-            let blob = new Blob([res.data])
-            if (window.navigator.msSaveOrOpenBlob) {
-                navigator.msSaveBlob(blob, fileName);
-            } else {
-                aLink.href = URL.createObjectURL(blob)
-                aLink.setAttribute('download', fileName) // 设置下载文件名称
-                aLink.click()
-                window.URL.revokeObjectURL(aLink.href);
-            }
-        },
-
-        dialogOpen(val) {
-            console.log("打开")
-            this.rootPath = val.imgPath;
-            this.getFile(val.imgPath);
-        },
-        open() {
-            this.$nextTick(() => {
-                console.log(this.$refs.threeTarget)
-                this.ThreeEngine = new ThreeEngine(this.$refs.threeTarget)
-                this.ThreeEngine.addObject(...allLights)  // 添加光线
-                this.ThreeEngine.addObject(...allBaseObject)  // 添加基础模型
-            })
-        },
-        dialogClose() {
-            console.log("关闭")
-            this.semgentUrls = []
-            this.fontUrls = []
-            this.sideUrls = []
-        },
-        handleClick(tab, event) {
-            console.log(tab, event);
-        },
-        handleClose(done) {
-            // this.$confirm('是否关闭页面？', '提示', {
-            //     confirmButtonText: '确定',
-            //     cancelButtonText: '取消'
-            // }).then(() => {
-                done();
-            // }).catch(() => { });
-        },
-        getFile(rootPath) {
-            getPicUrl(rootPath).then(res => {
-                this.semgentUrls = res.data.data.seList;
-                this.fontUrls = res.data.data.seFontList;
-                this.sideUrls = res.data.data.seSideList;
-                this.semgentLen = res.data.data.seList.length - 1;
-                this.fontLen = res.data.data.seFontList.length - 1;
-                this.sideLen = res.data.data.seSideList.length - 1;
-            })
-            this.openFullScreen();
-        },
-        handleMouseWheel1(e) {
-            e.preventDefault()
-            clearTimeout(this.timer)
-            this.timer = setTimeout(() => {
-                if (!window.scrollY) {
-                    // 禁止页面滚动
-                    if (e.wheelDelta) {
-                        // 判断浏览器IE，谷歌滑轮事件
-                        var fontX = document.getElementById('fontX');
-                        var sideX = document.getElementById('sideX');
-                        if (e.wheelDelta > 0) {
-                            if (this.seIndex > 0) {
-                                this.seIndex--;
-                                fontX.setAttribute("style", "bottom: " + this.seIndex + "px !important");
-                                sideX.setAttribute("style", "bottom: " + this.seIndex + "px !important");
-                            }
-                        }
-                        if (e.wheelDelta < 0) {
-                            // 当滑轮向下滚动时
-                            if (this.seIndex < this.semgentUrls.length - 1) {
-                                this.seIndex++;
-                                fontX.setAttribute("style", "bottom: " + this.seIndex + "px !important");
-                                sideX.setAttribute("style", "bottom: " + this.seIndex + "px !important");
-                            }
-                        }
-                    }
-                }
-            }, 1)
-        },
-        handleMouseWheel2(e) {
-            e.preventDefault()
-            clearTimeout(this.timer)
-            this.timer = setTimeout(() => {
-                if (!window.scrollY) {
-                    // 禁止页面滚动
-                    if (e.wheelDelta) {
-                        // 判断浏览器IE，谷歌滑轮事件
-                        var seX = document.getElementById('seX');
-                        var sideY = document.getElementById('sideY');
-                        if (e.wheelDelta > 0) {
-                            if (this.fontIndex > 0) {
-                                this.fontIndex--;
-                                seX.setAttribute("style", "top: " + this.fontIndex + "px !important");
-                                sideY.setAttribute("style", "left: " + this.fontIndex + "px !important");
-                            }
-                        }
-                        if (e.wheelDelta < 0) {
-                            // 当滑轮向下滚动时
-                            if (this.fontIndex < this.fontUrls.length - 1) {
-                                this.fontIndex++;
-                                seX.setAttribute("style", "top: " + this.fontIndex + "px !important");
-                                sideY.setAttribute("style", "left: " + this.fontIndex + "px !important");
-                            }
-                        }
-                    }
-                }
-            }, 1)
-        },
-        handleMouseWheel3(e) {
-            e.preventDefault()
-            clearTimeout(this.timer)
-            var seY = document.getElementById('seY');
-            var fontY = document.getElementById('fontY');
-            this.timer = setTimeout(() => {
-                if (!window.scrollY) {
-                    // 禁止页面滚动
-                    if (e.wheelDelta) {
-                        // 判断浏览器IE，谷歌滑轮事件
-                        if (e.wheelDelta > 0) {
-                            if (this.sideIndex > 0) {
-                                this.sideIndex--;
-                                seY.setAttribute("style", "left: " + this.sideIndex + "px !important");
-                                fontY.setAttribute("style", "left: " + this.sideIndex + "px !important");
-                            }
-                        }
-                        if (e.wheelDelta < 0) {
-                            // 当滑轮向下滚动时
-                            if (this.sideIndex < this.sideUrls.length - 1) {
-                                this.sideIndex++;
-                                seY.setAttribute("style", "left: " + this.sideIndex + "px !important");
-                                fontY.setAttribute("style", "left: " + this.sideIndex + "px !important");
-                            }
-                        }
-                    }
-                }
-            }, 1)
-        },
-        sliderchange1() {
-            var fontX = document.getElementById('fontX');
-            var sideX = document.getElementById('sideX');
-            fontX.setAttribute("style", "bottom: " + (this.seIndex + 75) + "px !important");
-            sideX.setAttribute("style", "bottom: " + (this.seIndex + 75) + "px !important");
-        },
-        sliderchange2() {
-            var seX = document.getElementById('seX');
-            var sideY = document.getElementById('sideY');
-            seX.setAttribute("style", "top: " + (this.fontIndex + 20) + "px !important");
-            sideY.setAttribute("style", "left: " + (this.fontIndex + 20) + "px !important");
-        },
-        sliderchange3() {
-            var seY = document.getElementById('seY');
-            var fontY = document.getElementById('fontY');
-            seY.setAttribute("style", "left: " + (this.sideIndex + 20) + "px !important");
-            fontY.setAttribute("style", "left: " + (this.sideIndex + 20) + "px !important");
-        }
+  name: 'TumorView',
+  components: { SliceViewport },
+  data() {
+    return {
+      dialogVisible: false,
+      studyLoading: false,
+      patient: {},
+      rootPath: '',
+      seIndex: 0,
+      fontIndex: 0,
+      sideIndex: 0,
+      semgentUrls: [],
+      fontUrls: [],
+      sideUrls: [],
+      isSeRender: true,
+      isSideRender: true,
+      isFontRender: true,
+      threeEngine: null,
+      requestVersion: 0,
+      syncingIndices: false
     }
-};
+  },
+  computed: {
+    totalSlices() { return this.semgentUrls.length + this.fontUrls.length + this.sideUrls.length }
+  },
+  watch: {
+    seIndex(value, oldValue) { if (this.dialogVisible && !this.syncingIndices && Number.isFinite(oldValue)) setYPosition(oldValue - value) },
+    fontIndex(value, oldValue) { if (this.dialogVisible && !this.syncingIndices && Number.isFinite(oldValue)) setXPosition(oldValue - value) },
+    sideIndex(value, oldValue) { if (this.dialogVisible && !this.syncingIndices && Number.isFinite(oldValue)) setZPosition(oldValue - value) }
+  },
+  beforeDestroy() { this.releaseViewer() },
+  methods: {
+    async dialogOpen(patient) {
+      this.patient = patient || {}
+      this.rootPath = patient.imgPath
+      this.dialogVisible = true
+      this.studyLoading = true
+      this.syncingIndices = true
+      this.resetStudy()
+      const version = ++this.requestVersion
+      try {
+        const res = await getPicUrl(this.rootPath)
+        if (version !== this.requestVersion) return
+        const data = res.data.data || {}
+        this.semgentUrls = data.seList || []
+        this.fontUrls = data.seFontList || []
+        this.sideUrls = data.seSideList || []
+        this.seIndex = this.middleIndex(this.semgentUrls)
+        this.fontIndex = this.middleIndex(this.fontUrls)
+        this.sideIndex = this.middleIndex(this.sideUrls)
+      } catch (error) {
+        this.$message.error('影像序列读取失败，请稍后重试')
+      } finally {
+        if (version === this.requestVersion) {
+          this.studyLoading = false
+          this.$nextTick(() => { this.syncingIndices = false })
+        }
+      }
+    },
+    middleIndex(list) { return list.length ? Math.floor((list.length - 1) / 2) : 0 },
+    slicePercent(index, list) { return list.length > 1 ? Math.round(index / (list.length - 1) * 100) : 50 },
+    resetStudy() {
+      this.semgentUrls = []
+      this.fontUrls = []
+      this.sideUrls = []
+      this.seIndex = this.fontIndex = this.sideIndex = 0
+      this.isSeRender = this.isSideRender = this.isFontRender = true
+      resetPositions()
+    },
+    initThreeScene() {
+      this.disposeThreeScene()
+      this.$nextTick(() => {
+        if (!this.$refs.threeTarget) return
+        this.threeEngine = new ThreeEngine(this.$refs.threeTarget)
+        this.threeEngine.addObject(...allLights)
+        this.threeEngine.addObject(...allBaseObject)
+      })
+    },
+    async toggleSeries(key) {
+      const config = {
+        se: { flag: 'isSeRender', list: 'semgentUrls', index: 'seIndex' },
+        seSide: { flag: 'isSideRender', list: 'sideUrls', index: 'sideIndex' },
+        seFont: { flag: 'isFontRender', list: 'fontUrls', index: 'fontIndex' }
+      }[key]
+      if (!config) return
+      const nextSegmented = !this[config.flag]
+      const path = nextSegmented ? this.rootPath : this.rootPath + '/original'
+      this.studyLoading = true
+      try {
+        const res = await changePicUrl(path, key)
+        this[config.list] = res.data.data || []
+        this[config.index] = Math.min(this[config.index], Math.max(this[config.list].length - 1, 0))
+        this[config.flag] = nextSegmented
+      } catch (error) {
+        this.$message.error('切片模式切换失败')
+      } finally {
+        this.studyLoading = false
+      }
+    },
+    downloadCurrent(key) {
+      const config = {
+        se: { rendered: this.isSeRender, index: this.seIndex },
+        seSide: { rendered: this.isSideRender, index: this.sideIndex },
+        seFont: { rendered: this.isFontRender, index: this.fontIndex }
+      }[key]
+      if (!config) return
+      const path = config.rendered ? this.rootPath : this.rootPath + '/original'
+      const fileName = 'image_' + config.index + '.png'
+      downloadPic(path + '/' + key + '/' + fileName, fileName).then(res => this.resolveBlob(res, fileName))
+    },
+    resolveBlob(res, fileName) {
+      const url = URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      link.click()
+      URL.revokeObjectURL(url)
+    },
+    disposeThreeScene() {
+      if (this.threeEngine) this.threeEngine.dispose()
+      this.threeEngine = null
+    },
+    releaseViewer() {
+      this.requestVersion++
+      this.disposeThreeScene()
+      this.resetStudy()
+      this.studyLoading = false
+      this.syncingIndices = false
+    }
+  }
+}
 </script>
-<style>
-.out1 {
-    width: 45vh;
-    height: 45vh;
-    /* border: 2px solid red; */
-    position: absolute;
-    z-index: 100;
-}
-
-.out2 {
-    width: 45vh;
-    height: 45vh;
-    margin-left: 50vh;
-    /* border: 2px solid blue; */
-    position: absolute;
-    z-index: 100;
-}
-
-.out3 {
-    width: 45vh;
-    height: 45vh;
-    margin-top: 50vh;
-    margin-left: 50vh;
-    /* border: 2px solid gold; */
-    position: absolute;
-    z-index: 100;
-}
-
-.out4 {
-    width: 45vh;
-    height: 45vh;
-    margin-top: 50vh;
-    /* margin-left: 50vh; */
-    /* border: 2px solid gold; */
-    position: absolute;
-    z-index: 100;
-}
-
-.div1 {
-    width: 40vh;
-    height: 40vh;
-    position: absolute;
-    z-index: 100;
-    /* border: 2px solid red; */
-}
-
-.div2 {
-    width: 40vh;
-    height: 40vh;
-    position: absolute;
-    z-index: 100;
-    /* border: 2px solid blue; */
-}
-
-.div3 {
-    width: 40vh;
-    height: 40vh;
-    position: absolute;
-    z-index: 100;
-    /* border: 2px solid gold; */
-}
-
-.div4 {
-    width: 40vh;
-    height: 40vh;
-    position: absolute;
-    z-index: 100;
-    /* border: 2px solid gold; */
-    background-color: black;
-}
-
-.image1 {
-    width: 40vh;
-    height: 40vh;
-}
-
-.image2 {
-    width: 40vh;
-    height: 40vh;
-}
-
-.image3 {
-    width: 40vh;
-    height: 40vh;
-}
-
-.text {
-    position: absolute;
-    width: 65px;
-    top: 41vh;
-    left: 35vh;
-    font-size: smaller;
-}
-
-.el-slider.is-vertical .el-slider__runway {
-    width: 15px !important;
-}
-
-.el-slider.is-vertical .el-slider__bar {
-    width: 15px !important;
-}
-
-.postitonText {
-    color: gold;
-    position: absolute;
-    z-index: 9999;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    font-size: medium;
-}
-
-.coordinateX {
-    width: 40vh;
-    height: 0px;
-    position: absolute;
-    z-index: 9999;
-    /* margin-top: 20vh; */
-    border: 2px dashed rgb(68, 63, 221);
-}
-
-.coordinateY {
-    width: 0px;
-    height: 40vh;
-    position: absolute;
-    z-index: 9999;
-    /* margin-left: 20vh; */
-    border: 2px dashed rgb(68, 63, 221);
-}
-
-.el-loading-mask {
-    position: absolute !important;
-    z-index: 10000 !important;
-    background-color: rgba(255, 255, 255, .9);
-    margin: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    transition: opacity .3s
-}
-</style>
 
 <style lang="scss">
-.sliderMain {
-    .el-slider {
-        width: 190px;
-        height: 6px;
-        position: relative;
-        top: -14px;
-        left: 2px;
-    }
-
-    .el-slider__runway {
-        background: #dedede;
-        border-radius: 0;
-    }
-
-
-    .el-slider__bar {
-        background: #dedede;
-        border-radius: 0;
-    }
-
-
-    .el-slider__button {
-        width: 15px;
-        height: 20px;
-        background: #ffffff;
-        border: none;
-        border-radius: 0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-        margin-left: 10px;
-    }
-
-    .el-slider__button-wrapper::after {
-        width: 0%;
-    }
-
-}
+.medical-viewer-dialog { height:96vh; margin-bottom:0 !important; display:flex; flex-direction:column; overflow:hidden; background:#07131b; border:1px solid #29404c; border-radius:10px; box-shadow:0 24px 70px rgba(0,0,0,.45); }
+.medical-viewer-dialog .el-dialog__header { height:64px; flex:0 0 64px; padding:0 60px 0 18px; display:flex; align-items:center; background:#10232e; border-bottom:1px solid #29404c; box-sizing:border-box; }.medical-viewer-dialog .el-dialog__headerbtn { top:22px; }.medical-viewer-dialog .el-dialog__headerbtn .el-dialog__close { color:#8ca3af; }.medical-viewer-dialog .el-dialog__body { min-height:0; flex:1; display:flex; flex-direction:column; padding:0; color:#c9d8df; }
+.viewer-titlebar { width:100%; display:flex; align-items:center; justify-content:space-between; }.viewer-brand { display:flex; align-items:center; gap:10px; }.viewer-logo { width:32px; height:32px; display:grid; place-items:center; border-radius:8px; color:#07131b; background:#43c9c0; font-weight:800; }.viewer-brand strong,.viewer-brand small { display:block; }.viewer-brand strong { color:#eff7f9; font-size:14px; }.viewer-brand small { margin-top:3px; color:#6f8996; font-size:9px; letter-spacing:.5px; }.patient-summary { display:flex; align-items:center; gap:28px; margin-right:24px; }.patient-summary span { color:#c0d0d7; font-size:11px; }.patient-summary small { display:block; margin-bottom:3px; color:#617b88; font-size:8px; }
+.viewer-toolbar { height:46px; flex:0 0 46px; display:flex; align-items:center; justify-content:space-between; padding:0 14px; background:#0b1922; border-bottom:1px solid #233743; }.tool-group { display:flex; gap:5px; }.tool-group button { height:30px; display:flex; align-items:center; gap:6px; padding:0 10px; border:1px solid transparent; border-radius:5px; color:#7f99a6; background:transparent; font-size:10px; cursor:pointer; }.tool-group button:hover { color:#d9e7ec; border-color:#2b4654; background:#142630; }.viewer-legend { display:flex; align-items:center; gap:7px; color:#6f8996; font-size:9px; }.legend-segment { width:12px; height:5px; margin-left:13px; background:#db4c72; }.legend-crosshair { width:12px; border-top:1px dashed #35a9df; }
+.viewer-grid { min-height:0; flex:1; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:6px; padding:6px; background:#040a0e; }.volume-viewport { min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; background:#071018; border:1px solid #203441; border-radius:8px; }.volume-viewport header { height:42px; flex:0 0 42px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; color:#d8e5eb; background:#101f29; border-bottom:1px solid #203441; }.volume-viewport header div { display:flex; align-items:center; gap:8px; }.volume-viewport header span { width:6px; height:6px; border-radius:50%; background:#e6bb4f; }.volume-viewport header strong { font-size:12px; }.volume-viewport header small { color:#698391; font-size:10px; }.volume-viewport header em { color:#526b77; font-size:9px; font-style:normal; }.three-stage { min-height:0; flex:1; overflow:hidden; background:radial-gradient(circle at center, #122530, #03070a 70%); }.three-stage canvas { display:block; }.volume-viewport footer { height:38px; flex:0 0 38px; display:flex; align-items:center; gap:16px; padding:0 12px; color:#607b88; background:#101f29; border-top:1px solid #203441; font-size:9px; }.volume-viewport footer i { display:inline-block; width:8px; margin-right:5px; border-top:2px solid #dd4e70; }.volume-viewport footer span:nth-child(2) i { border-color:#4bc88a; }.volume-viewport footer span:nth-child(3) i { border-color:#4b9fe0; }
+.viewer-statusbar { height:28px; flex:0 0 28px; display:flex; align-items:center; justify-content:space-between; padding:0 14px; color:#55707d; background:#0a171f; border-top:1px solid #203441; font-size:9px; }.status-online { display:inline-block; width:6px; height:6px; margin-right:6px; border-radius:50%; background:#38c698; }
+@media (max-width: 1000px) { .patient-summary span:nth-child(3) { display:none; }.medical-viewer-dialog { width:98% !important; }.viewer-grid { grid-template-columns:1fr; grid-template-rows:repeat(4, 340px); overflow-y:auto; }.viewer-grid > * { min-height:340px; } }
 </style>

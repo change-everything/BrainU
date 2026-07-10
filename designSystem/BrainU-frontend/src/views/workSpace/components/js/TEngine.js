@@ -2,150 +2,121 @@ import { WebGLRenderer, Scene, PerspectiveCamera, Vector3, Raycaster, Vector2 } 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 
-
 export class ThreeEngine {
-
-    dom = null; // 挂载的 DOM
-    scene = null; // 场景
-
     constructor(dom) {
-        console.log(dom);
-        // 创建渲染器
-        let renderer = new WebGLRenderer({
-            antialias: true,  // 开启抗锯齿
-        })
-        dom.appendChild(renderer.domElement)  // 将渲染器挂载到dom
-        renderer.setSize(dom.offsetWidth, dom.offsetHeight, true)
-
-        let scene = new Scene()  // 实例化场景
-
-        let camera = new PerspectiveCamera(45, dom.offsetWidth / dom.offsetHeight, 1, 1000)  // 实例化相机
-        camera.position.set(250, 0, 250) // 设置相机位置
-        camera.lookAt(new Vector3(0, 0, 0))  // 设置相机看先中心点
-        camera.up = new Vector3(0, 1, 0)  // 设置相机角度
-
-        // renderer.setClearColor('rgb(239, 70, 1)')  // 设置渲染器的颜色
-        // renderer.clearColor()   // 清空颜色
-        renderer.render(scene, camera)  // 渲染器渲染场景和相机
-
-        new OrbitControls(camera, renderer.domElement)
-
-
-        // 初始化射线发射器
-        let raycaster = new Raycaster()
-        // 初始化变换控制器
-        let transformControls = new TransformControls(camera, renderer.domElement)
-        scene.add(transformControls) // 将变换控制器添加至场景
-
-        let transing = false
-        transformControls.addEventListener("mouseDown", event => {
-            console.log(event)
-            transing = true
-        })
-
-        // 初始化鼠标位置
-        let mouse = new Vector2()
-        let x = 0; let y = 0; let width = 0; let height = 0
-
-        renderer.domElement.addEventListener("mousemove", event => {
-            x = event.offsetX
-            y = event.offsetY
-            width = renderer.domElement.offsetWidth
-            height = renderer.domElement.offsetHeight
-            mouse.x = x / width * 2 - 1
-            mouse.y = -y * 2 / height + 1
-
-            raycaster.setFromCamera(mouse, camera)  // 配置射线发射器
-            scene.remove(transformControls)  // 移除变换控制器
-            const intersection = raycaster.intersectObjects(scene.children)
-            if (intersection.length) {
-                const object = intersection[0].object
-                if (object !== this.cacheObject) {  // 如果当前物体不等于缓存的物体
-                    if (this.cacheObject) { // 如果有缓存物体先执行之前物体的离开事件
-                        this.cacheObject.dispatchEvent({
-                            type: 'mouseleave'
-                        })
-                    }
-                    object.dispatchEvent({  // 添加当前物体进入事件
-                        type: 'mouseenter'
-                    })
-                } else if (object === this.cacheObject) {  // 如果当前物体等于缓存的物体
-                    object.dispatchEvent({  // 执行移动事件
-                        type: 'mousemove'
-                    })
-                }
-                this.cacheObject = object
-            } else {
-                if (this.cacheObject) {  // 如果有缓存物体就先执行离开事件
-                    this.cacheObject.dispatchEvent({
-                        type: 'mouseleave'
-                    })
-                }
-                this.cacheObject = null
-            }
-        })
-
-        // 点击事件
-        renderer.domElement.addEventListener("click", event => {
-            console.log(event)
-            if (transing) {
-                transing = false
-                return
-            }
-            scene.remove(transformControls) // 移除变换控制器
-            transformControls.enabled = false // 停用变换控制器
-            raycaster.setFromCamera(mouse, camera)  // 配置射线发射器，传递鼠标和相机对象
-            const intersection = raycaster.intersectObjects(scene.children) // 获取射线发射器捕获的模型列表，传进去场景中所以模型，穿透的会返回我们
-            if (intersection.length) {
-                const object = intersection[0].object  // 获取第一个模型
-                scene.add(transformControls) // 添加变换控制器
-                transformControls.enabled = true // 启用变换控制器
-                transformControls.attach(object)
-            }
-        })
-
-
-        // 监听变换控制器模式更改
-        document.addEventListener("keyup", event => {
-            if (transformControls.enabled) {  // 变换控制器为启用状态执行
-                if (event.key === 'e') { // 鼠标按下e键，模式改为缩放
-                    transformControls.mode = 'scale'
-                    return false
-                }
-                if (event.key === 'r') { // 鼠标按下r键，模式改为旋转
-                    transformControls.mode = 'rotate'
-                    return false
-                }
-                if (event.key === 't') { // 鼠标按下t键，模式改为平移
-                    transformControls.mode = 'translate'
-                    return false
-                }
-            }
-        })
-
-
-
-
-        // 逐帧渲染threejs
-        let animate = () => {
-            renderer.render(scene, camera)  // 渲染器渲染场景和相机
-            requestAnimationFrame(animate);
-        }
-        animate()
-
         this.dom = dom
-        this.scene = scene
-        console.log("渲染完成")
+        this.disposed = false
+        this.animationId = null
+        this.cacheObject = null
+        this.mouse = new Vector2()
+        this.raycaster = new Raycaster()
+
+        this.renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+        this.renderer.setClearColor(0x000000, 0)
+        dom.appendChild(this.renderer.domElement)
+
+        this.scene = new Scene()
+        this.camera = new PerspectiveCamera(45, 1, 1, 1000)
+        this.camera.position.set(250, 0, 250)
+        this.camera.lookAt(new Vector3(0, 0, 0))
+        this.camera.up = new Vector3(0, 1, 0)
+
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+        this.controls.enableDamping = true
+        this.controls.dampingFactor = 0.08
+
+        this.transformControls = new TransformControls(this.camera, this.renderer.domElement)
+        this.transformControls.enabled = false
+        this.scene.add(this.transformControls)
+
+        this.handlePointerMove = this.onPointerMove.bind(this)
+        this.handleClick = this.onClick.bind(this)
+        this.handleKeyUp = this.onKeyUp.bind(this)
+        this.renderer.domElement.addEventListener('pointermove', this.handlePointerMove)
+        this.renderer.domElement.addEventListener('click', this.handleClick)
+        document.addEventListener('keyup', this.handleKeyUp)
+
+        this.handleResize = this.resize.bind(this)
+        this.resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(this.handleResize) : null
+        if (this.resizeObserver) this.resizeObserver.observe(dom)
+        else window.addEventListener('resize', this.handleResize)
+
+        this.resize()
+        this.animate()
     }
 
-    /**
-     * 向场景中添加模型
-     * @param  {...any} object 模型列表
-     */
-    addObject(...object) {
-        object.forEach(elem => {
-            this.scene.add(elem)
-        })
+    resize() {
+        if (this.disposed || !this.dom) return
+        const width = Math.max(this.dom.clientWidth, 1)
+        const height = Math.max(this.dom.clientHeight, 1)
+        this.camera.aspect = width / height
+        this.camera.updateProjectionMatrix()
+        this.renderer.setSize(width, height, false)
     }
 
+    getIntersections(event) {
+        const rect = this.renderer.domElement.getBoundingClientRect()
+        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+        this.raycaster.setFromCamera(this.mouse, this.camera)
+        const selectable = this.scene.children.filter(item => item !== this.transformControls)
+        return this.raycaster.intersectObjects(selectable, true)
+    }
+
+    onPointerMove(event) {
+        const hit = this.getIntersections(event)[0]
+        const object = hit && hit.object
+        if (object === this.cacheObject) return
+        if (this.cacheObject) this.cacheObject.dispatchEvent({ type: 'mouseleave' })
+        if (object) object.dispatchEvent({ type: 'mouseenter' })
+        this.cacheObject = object || null
+    }
+
+    onClick(event) {
+        const hit = this.getIntersections(event)[0]
+        if (!hit) {
+            this.transformControls.detach()
+            this.transformControls.enabled = false
+            return
+        }
+        this.transformControls.enabled = true
+        this.transformControls.attach(hit.object)
+    }
+
+    onKeyUp(event) {
+        if (!this.transformControls.enabled) return
+        const modes = { e: 'scale', r: 'rotate', t: 'translate' }
+        if (modes[event.key.toLowerCase()]) this.transformControls.setMode(modes[event.key.toLowerCase()])
+    }
+
+    animate() {
+        if (this.disposed) return
+        this.animationId = requestAnimationFrame(() => this.animate())
+        this.controls.update()
+        this.renderer.render(this.scene, this.camera)
+    }
+
+    addObject(...objects) {
+        objects.forEach(object => this.scene.add(object))
+    }
+
+    dispose() {
+        if (this.disposed) return
+        this.disposed = true
+        if (this.animationId) cancelAnimationFrame(this.animationId)
+        if (this.resizeObserver) this.resizeObserver.disconnect()
+        else window.removeEventListener('resize', this.handleResize)
+        this.renderer.domElement.removeEventListener('pointermove', this.handlePointerMove)
+        this.renderer.domElement.removeEventListener('click', this.handleClick)
+        document.removeEventListener('keyup', this.handleKeyUp)
+        this.transformControls.detach()
+        this.transformControls.dispose()
+        this.controls.dispose()
+        this.renderer.dispose()
+        this.renderer.forceContextLoss()
+        if (this.renderer.domElement.parentNode) this.renderer.domElement.parentNode.removeChild(this.renderer.domElement)
+        this.scene.clear()
+        this.dom = null
+    }
 }

@@ -1,110 +1,54 @@
-import Index from '../views/index'
-import GetStart from '../views/segment/getStart'
-import UploadAndSegment from '../views/segment/uploadAndSegment'
-import WorkSpace from '../views/workSpace/workSpace'
-import NewPatients from '../views/workSpace/newPatients'
-import ModelManage from '../views/model/index'
-import DoctorManage from '../views/doctor/index'
-import Login from '../views/login'
-
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-
 import { getToken } from '@/util/auth'
 
-//2. 调用Vue.use()函数，把VueRouter安装为Vue的插件
 Vue.use(VueRouter)
 
+// Keep the login and application shell small. Feature pages (especially the
+// Three.js medical viewer) are downloaded only when the user opens them.
+const Index = () => import(/* webpackChunkName: "layout" */ '../views/index')
+const Login = () => import(/* webpackChunkName: "auth" */ '../views/login')
+const GetStart = () => import(/* webpackChunkName: "guide" */ '../views/segment/getStart')
+const UploadAndSegment = () => import(/* webpackChunkName: "segment" */ '../views/segment/uploadAndSegment')
+const WorkSpace = () => import(/* webpackChunkName: "workspace" */ '../views/workSpace/workSpace')
+const NewPatients = () => import(/* webpackChunkName: "workspace" */ '../views/workSpace/newPatients')
+const ModelManage = () => import(/* webpackChunkName: "management" */ '../views/model/index')
+const DoctorManage = () => import(/* webpackChunkName: "management" */ '../views/doctor/index')
 
 const router = new VueRouter({
-    mode: 'history', // 去掉url中的#
+    mode: 'history',
     scrollBehavior: () => ({ y: 0 }),
     routes: [
         {
             path: '/login',
             component: Login,
             name: '登录',
-            meta: { title: '登录' },
-            requiresAuth: false
+            meta: { title: '登录 · BrainU' }
         },
         {
             path: '/',
             component: Index,
             name: '首页',
-            meta: { title: '首页' },
+            redirect: '/getStart',
             children: [
-                {
-                    path: '/getStart',
-                    component: GetStart,
-                    name: '快速开始',
-                    meta: { title: '快速开始' },
-                    requiresAuth: true
-                },
-                {
-                    path: '/segment',
-                    component: UploadAndSegment,
-                    name: '数据添加',
-                    meta: { title: '数据添加' },
-                    requiresAuth: true
-                },
-                {
-                    path: '/workSpace',
-                    component: WorkSpace,
-                    name: '已诊断患者',
-                    meta: { title: '工作空间' },
-                    requiresAuth: true
-                },
-                {
-                    path: '/newPatients',
-                    component: NewPatients,
-                    name: '未诊断患者',
-                    meta: { title: '工作空间' },
-                    requiresAuth: true
-                },
-                {
-                    path: '/modelManage',
-                    component: ModelManage,
-                    name: '模型信息管理',
-                    meta: { title: '模型信息管理' },
-                    requiresAuth: true
-                },
-                {
-                    path: '/doctorManage',
-                    component: DoctorManage,
-                    name: '医生信息管理',
-                    meta: { title: '医生信息管理' },
-                    requiresAuth: true
-                }
+                { path: '/getStart', component: GetStart, name: '快速开始', meta: { title: '临床概览 · BrainU', requiresAuth: true } },
+                { path: '/segment', component: UploadAndSegment, name: '数据添加', meta: { title: '导入影像 · BrainU', requiresAuth: true } },
+                { path: '/workSpace', component: WorkSpace, name: '已诊断患者', meta: { title: '已诊断病例 · BrainU', requiresAuth: true } },
+                { path: '/newPatients', component: NewPatients, name: '未诊断患者', meta: { title: '待诊断病例 · BrainU', requiresAuth: true } },
+                { path: '/modelManage', component: ModelManage, name: '模型信息管理', meta: { title: '模型管理 · BrainU', requiresAuth: true } },
+                { path: '/doctorManage', component: DoctorManage, name: '医生信息管理', meta: { title: '医生团队 · BrainU', requiresAuth: true } }
             ]
         }
     ]
 })
 
-
-// 路由拦截，判断是否需要登录
 router.beforeEach((to, from, next) => {
-    if (to.meta.title) {
-        document.title = to.meta.title;
+    document.title = to.meta.title || 'BrainU 医学影像平台'
+    if (!to.meta.requiresAuth || getToken()) {
+        next()
+        return
     }
-    if (to.path == "/") {
-        next({
-            path: '/getStart',
-            // query: { redirect: to.fullPath }
-        });
-    }
-    if (to.path === '/login') {
-        next();
-    } else {
-        let token = getToken();
-        if (token === null || token === '' || token === undefined) {
-            next('/login');
-        } else {
-            next();
-        }
-    }
+    next({ path: '/login', query: { redirect: to.fullPath } })
+})
 
-});
-
-
-export default router;
-
+export default router

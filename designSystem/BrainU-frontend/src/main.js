@@ -2,28 +2,32 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import axios from 'axios'
+import {
+  Avatar, Badge, Button, Card, Col, Collapse, CollapseItem, Dialog, Drawer,
+  Dropdown, DropdownItem, DropdownMenu, Empty, Form, FormItem, Image, Input,
+  Link, Menu, MenuItem, Option, Pagination, Popover, Rate, Row, Select, Slider,
+  Step, Steps, Submenu, Table, TableColumn, Tag, Upload, Loading, Message, MessageBox
+} from 'element-ui'
+import './assets/css/global.css'
 
-import ElementUI from 'element-ui';                      // 引入element-ui
-import 'element-ui/lib/theme-chalk/index.css';
-// fade/zoom 等
-import 'element-ui/lib/theme-chalk/base.css';
-import './assets/css/global.css';
-
-//图片放大组件
 import VueDirectiveImagePreviewer from 'vue-directive-image-previewer'
 import 'vue-directive-image-previewer/dist/assets/style.css'
+
+[
+  Avatar, Badge, Button, Card, Col, Collapse, CollapseItem, Dialog, Drawer,
+  Dropdown, DropdownItem, DropdownMenu, Empty, Form, FormItem, Image, Input,
+  Link, Menu, MenuItem, Option, Pagination, Popover, Rate, Row, Select, Slider,
+  Step, Steps, Submenu, Table, TableColumn, Tag, Upload
+].forEach(component => Vue.use(component))
+
+Vue.use(Loading.directive)
 Vue.use(VueDirectiveImagePreviewer)
+Vue.prototype.$loading = Loading.service
+Vue.prototype.$message = Message
+Vue.prototype.$confirm = MessageBox.confirm
 
-axios.defaults.baseURL = 'http://localhost:8989';
-
+axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8989'
+Vue.prototype.$axios = axios
 Vue.config.productionTip = false
-//全局挂载
-Vue.prototype.$axios = axios;
 
-Vue.use(ElementUI);
-
-new Vue({
-  render: h => h(App),
-  router,
-  axios
-}).$mount('#app')
+new Vue({ router, render: h => h(App) }).$mount('#app')
