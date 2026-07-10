@@ -117,7 +117,7 @@
 import { listPatientIsHeadle, savePatient, deletePatient } from "@/api/patient"
 import { listDoctor } from "@/api/doctor";
 import { downloadTumorFile } from "@/api/segment"
-import TumorView from "./components/tumorView"
+const TumorView = () => import(/* webpackChunkName: "medical-viewer" */ './components/tumorView')
 export default {
     name: '',
     components: {

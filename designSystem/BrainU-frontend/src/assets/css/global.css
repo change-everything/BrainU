@@ -1,3 +1,13 @@
+:root {
+    --clinical-primary: #168d8d;
+    --clinical-primary-dark: #0c646b;
+    --clinical-text: #1a2b3b;
+    --clinical-muted: #708894;
+    --clinical-border: #dfe8ec;
+    --clinical-surface: #ffffff;
+    --clinical-background: #f3f7f9;
+}
+
 html,
 body,
 #app {
@@ -6,3 +16,36 @@ body,
     height: 100%;
     width: 100%;
 }
+
+html { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+body { color: var(--clinical-text); background: var(--clinical-background); -webkit-font-smoothing: antialiased; }
+*, *::before, *::after { box-sizing: border-box; }
+button, input, select, textarea { font: inherit; }
+
+.clinical-main > div > .el-card,
+.clinical-main > .el-card {
+    border: 1px solid var(--clinical-border);
+    border-radius: 10px;
+    box-shadow: 0 5px 18px rgba(25, 60, 78, .045);
+}
+
+.clinical-main .el-button--primary {
+    background: var(--clinical-primary);
+    border-color: var(--clinical-primary);
+}
+
+.clinical-main .el-button--primary:hover,
+.clinical-main .el-button--primary:focus {
+    background: #1aa1a0;
+    border-color: #1aa1a0;
+}
+
+.clinical-main .el-table th {
+    color: #607986;
+    background: #f6f9fa;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.clinical-main .el-table td { color: #304753; }
+.clinical-main .el-pagination.is-background .el-pager li:not(.disabled).active { background: var(--clinical-primary); }
