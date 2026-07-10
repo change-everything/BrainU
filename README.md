@@ -1,129 +1,127 @@
-# BrainU
 
-![BrainU Logo](designSystem/BrainU-backend/img/logo.png)
+![logo.png](designSystem%2FBrainU-backend%2Fimg%2Flogo.png)
 
-BrainU 是一个面向脑部 MRI 的肿瘤分割与医学影像浏览平台。系统由 Vue 2 临床工作台、Spring Boot 聚合服务、Python/PyTorch 推理服务以及 MySQL、Redis、MinIO 等基础设施组成，支持病例管理、MRI 文件上传、模型选择、肿瘤分割、三向切片浏览和结果下载。
 
-> [!WARNING]
-> 本项目目前属于教学、科研和工程验证性质，不是经过医疗器械认证的诊断系统，不能直接用于临床诊断或治疗决策。
+# brainU
+## 项目介绍
 
-> [!CAUTION]
-> 仓库历史配置中存在数据库、Redis、MinIO 地址及凭据硬编码。公开部署前必须轮换相关凭据，并使用本地配置文件或环境变量覆盖，禁止继续使用仓库中出现过的任何密码。
+基于多模态UNet神经网络+Pytorch+opencv+SpringBoot+Vue2的脑肿瘤自动分割web平台项目。用户可以针对某个病人的脑肿瘤核磁共振扫描的文件上传平台进行肿瘤分割。
 
-## 目录
+## 模型训练
+### Multi-modal U-Net
+![mmunet.png](designSystem%2FBrainU-backend%2Fimg%2Fmmunet.png)
+#### 复现
+##### 模型参数结构表
+![paaramtable.png](designSystem%2FBrainU-backend%2Fimg%2Fpaaramtable.png)
+![table2.png](designSystem%2FBrainU-backend%2Fimg%2Ftable2.png)
+![table3.png](designSystem%2FBrainU-backend%2Fimg%2Ftable3.png)
 
-- [功能概览](#功能概览)
-- [技术栈](#技术栈)
-- [项目结构](#项目结构)
-- [运行架构](#运行架构)
-- [部署方式选择](#部署方式选择)
-- [部署前必须确认的事项](#部署前必须确认的事项)
-- [本地开发环境搭建](#本地开发环境搭建)
-- [生产环境部署](#生产环境部署)
-- [微服务版本说明](#微服务版本说明)
-- [日常更新与回滚](#日常更新与回滚)
-- [常见问题](#常见问题)
-- [模型与实验结果](#模型与实验结果)
+##### 训练环境
+![env.png](designSystem%2FBrainU-backend%2Fimg%2Fenv.png)
+![env2.png](designSystem%2FBrainU-backend%2Fimg%2Fenv2.png)
 
-## 功能概览
+##### 神经网络结构参数
+![unetparams.png](designSystem%2FBrainU-backend%2Fimg%2Funetparams.png)
+- batch_size:指定每次训练时使用的样本数。较大的 batch_size 能够提高训练速度，
+但可能会降低模型的准确性。
+- epoch: 指定训练的轮数。每一轮训练都会使用全部的训练数据，这有助于模型逐渐
+提高准确性，但如果训练轮数过多，可能会导致过拟合。
+- patience: 指定在验证集上连续多少个 epoch 的性能没有提升时，停止训练。这可以
+避免过拟合和浪费时间和计算资源。
+- learning rate drop: 当模型训练到一定程度时，为了避免过拟合和提高准确性，我
+们可以降低学习率。此超参数可以指定学习率下降的速度和幅度。
+- early stop: 当模型在验证集上的性能不再提升时，可以提前停止训练以节省时间和
+计算资源。此超参数可以指定在多少个 epoch 没有提升时，停止训练。
+- initial learning rate: 指定模型最初的学习率。较高的学习率可以提高训练速度，
+但可能会导致模型不稳定和性能下降，本次训练使用 Adam 自适应学习率算法，所以算法
+将根据损失函数的变化情况自动调整学习率的大小。
 
-- 医生账号登录与基于 JWT、Redis 的会话校验。
-- 患者资料、待诊断病例和已诊断病例管理。
-- 批量上传 `.mha` MRI 序列及患者资料。
-- 选择 U-Net 或 Multi-modal U-Net 模型执行分割。
-- 将分割结果和原始切片上传至 MinIO。
-- 轴位、矢状位、冠状位和三维定位视图联动浏览。
-- 当前切片按需加载，并预取相邻切片，避免一次性加载数百张图像。
-- 原始影像与分割结果切换、当前切片下载、结果文件下载。
-- 模型信息、医生信息和诊断通知管理。
+##### 实验结果
+- Multi-modal U-Net脑部胶质瘤分割示例，从左到右分别为磁共振成像液体衰减反转序
+  列、T1 加权成像、T1c造影剂成像、T2 加权成像、模型预测的肿瘤掩模图以及真实的肿瘤掩模图
+![result.png](designSystem%2FBrainU-backend%2Fimg%2Fresult.png)
+
+- IoU 测量每个类别的预测标签和
+  地面实况标签之间的重叠。发现标签 0 的 IoU 为 99.6%，表明该模型准确地识别了此类。
+  标签 1、2 和 3 的 IoU 值也相对较高，分别为 78.4%、83.9%和 75%。这表明该模型能够准
+  确识别这些类，尽管还有一些改进的空间。另一方面，发现标签 4 的 IoU 为 87.2%，表明
+  该模型能够准确识别这一类别。
+
+![result1.png](designSystem%2FBrainU-backend%2Fimg%2Fresult1.png)
+
+
+
+## 架构图
+![system.png](designSystem%2FBrainU-backend%2Fimg%2Fsystem.png)
+
+## 流程图
+![process.png](designSystem%2FBrainU-backend%2Fimg%2Fprocess.png)
+
+## 模块设计图
+![design.png](designSystem%2FBrainU-backend%2Fimg%2Fdesign.png)
+
+## 系统用例图
+![use.png](designSystem%2FBrainU-backend%2Fimg%2Fuse.png)
+
+## 时序图
+### 肿瘤分割
+![timep.png](designSystem%2FBrainU-backend%2Fimg%2Ftimep.png)
+
+
+## 项目亮点
+
+1. **成功复现UNet和muti-modal UNet网络：**
+   - 基于PyTorch框架，成功复现了UNet和muti-modal UNet网络，并利用2015年脑肿瘤分割大赛的数据集进行训练。
+   - 对数据集进行了有效的预处理，并划分为训练集和测试集，在实测中达到了95%的准确率。
+
+2. **前后端交互实现在线脑肿瘤分割：**
+   - 借助Spring Boot和Vue框架，实现了系统的后端和前端交互。
+   - 调用自己开发的脑肿瘤分割接口，实现了在线脑肿瘤分割，为用户提供了便捷的服务。
+
+3. **数据可靠存储和高效管理：**
+   - 使用Minio进行数据的可靠存储和高效管理，将用户上传的脑部MRI影像保存到Minio中，保证了数据的安全性和可靠性。
+
+4. **引入评分机制实现模型的可迭代性：**
+   - 引入评分机制，用户可以对本次分割的精准度进行评分。
+   - 如果分数高于阈值，将本次训练参数保存到模型文件中，实现了模型的自我训练和迭代优化。
+
+
+
+## 截图
+### 登录
+![login.png](designSystem%2FBrainU-backend%2Fimg%2Flogin.png)
+### 数据添加
+![add.png](designSystem%2FBrainU-backend%2Fimg%2Fadd.png)
+![add2.png](designSystem%2FBrainU-backend%2Fimg%2Fadd2.png)
+### 工作空间
+![p1.png](designSystem%2FBrainU-backend%2Fimg%2Fp1.png)
+![p2.png](designSystem%2FBrainU-backend%2Fimg%2Fp2.png)
+### 肿瘤交互
+![tumor.png](designSystem%2FBrainU-backend%2Fimg%2Ftumor.png)
+### 模型管理
+![model.png](designSystem%2FBrainU-backend%2Fimg%2Fmodel.png)
+### 医生管理
+![doctor.png](designSystem%2FBrainU-backend%2Fimg%2Fdoctor.png)
 
 ## 技术栈
 
-| 层级 | 技术 |
-| --- | --- |
-| Web 前端 | Vue 2.6、Vue Router 3、Element UI、Axios、Three.js |
-| 聚合后端 | Java 8、Spring Boot 2.7.5、MyBatis-Plus 3.5、Druid |
-| 推理服务 | Python、PyTorch、SimpleITK、OpenCV、NumPy |
-| 数据存储 | MySQL、Redis、MinIO |
-| 可选微服务 | Spring Cloud 2021、Spring Cloud Alibaba、Nacos、Gateway、OpenFeign |
-| 生产入口 | Nginx、systemd（示例） |
 
-## 项目结构
+![Static Badge](https://img.shields.io/badge/Spring%20Boot-green)
+![Static Badge](https://img.shields.io/badge/Redis-red)
+![Static Badge](https://img.shields.io/badge/Vue2-skyblue)
+![Static Badge](https://img.shields.io/badge/ElementUI-skyblue)
+![Static Badge](https://img.shields.io/badge/python-skyblue)
+![Static Badge](https://img.shields.io/badge/pytorch-skyblue)
+![Static Badge](https://img.shields.io/badge/opencv-green)
+...
 
-```text
-BrainU/
-├── README.md
-├── designSystem/
-│   ├── BrainU-frontend/          # Vue 2 前端
-│   ├── BrainU-backend/           # 推荐使用的 Spring Boot 聚合后端
-│   └── BrainU-micoservice/       # 早期微服务拆分版本，当前不建议作为首次部署入口
-└── python_server/                # PyTorch 推理与切片生成服务，TCP 端口 50007
-```
 
-核心目录说明：
+## 系统搭建与部署
 
-```text
-designSystem/BrainU-frontend/src/
-├── api/                          # 前端 API 封装
-├── router/                       # 懒加载路由
-├── util/request.js               # Axios 实例，统一请求 /api
-└── views/workSpace/components/   # 医学影像查看器和 Three.js 引擎
+以下流程根据当前仓库代码整理。推荐优先部署 `designSystem/BrainU-backend` 聚合后端；`designSystem/BrainU-micoservice` 属于早期微服务拆分版本，首次搭建不建议使用。
 
-designSystem/BrainU-backend/src/main/
-├── java/com/peiyp/brainu/
-│   ├── controller/               # HTTP 接口
-│   ├── service/                  # 业务与 Python Socket 调用
-│   ├── mapper/                   # MyBatis-Plus Mapper
-│   └── config/                   # Redis、MinIO、Web 配置
-└── resources/application.yml     # 默认配置，生产环境必须覆盖敏感值
-```
-
-## 运行架构
-
-```mermaid
-flowchart LR
-    U[浏览器] -->|HTTPS| N[Nginx]
-    N -->|静态资源| V[Vue dist]
-    N -->|/api| J[Spring Boot :8000]
-    J --> M[(MySQL)]
-    J --> R[(Redis)]
-    J -->|TCP 127.0.0.1:50007| P[Python 推理服务]
-    J --> S[(MinIO)]
-    P -->|上传三向切片| S
-```
-
-一次完整分割流程：
-
-1. 前端把 MRI 文件和患者资料上传到 Spring Boot。
-2. Spring Boot 将上传文件暂存到本机目录，并保存患者、文件和通知记录。
-3. 医生在待诊断病例中选择模型并发起分割。
-4. Spring Boot 通过 TCP `127.0.0.1:50007` 调用 Python 服务。
-5. Python 加载模型和 MRI 数据，生成 `result.mha`。
-6. Python 生成轴位、矢状位和冠状位切片，并上传至 MinIO。
-7. Spring Boot 保存 MinIO 对象路径，前端按需获取预签名 URL 并浏览切片。
-
-## 部署方式选择
-
-仓库中存在两套 Java 后端：
-
-### 方案 A：聚合后端，推荐
-
-目录：`designSystem/BrainU-backend`
-
-- 单个 Spring Boot 服务。
-- 默认端口为 `8000`，上下文路径为 `/api`。
-- 本地搭建、演示和当前生产化改造都应从此方案开始。
-- 不依赖 Nacos 和 Gateway，故障面更小。
-
-### 方案 B：微服务版本，实验性质
-
-目录：`designSystem/BrainU-micoservice`
-
-- 包含 Gateway、Auth、User、Model、TumorSegmentation、Common。
-- 依赖 Nacos、OpenFeign 和多个服务进程。
-- 部分模块声明、配置和硬编码地址尚未完全收口，不能直接视为一键部署版本。
-
-下文除“微服务版本说明”外，均以方案 A 为准。
+> [!WARNING]
+> 本项目用于教学、科研和工程验证，未经过医疗器械认证，不能直接用于临床诊断或治疗决策。
 
 ## 部署前必须确认的事项
 
@@ -974,77 +972,11 @@ Three.js 医学查看器已经拆为异步 chunk，但 Element UI、Vue 2 和 Th
 
 旧版 `@vue/cli-service` 及其 `node-ipc` 依赖与新 Node 版本可能不兼容。优先使用 Node 16 LTS 构建；长期方案是升级构建工具。
 
-## 模型与实验结果
+## 作者
 
-### Multi-modal U-Net
+- [@peiYp](https://github.com/change-everything)
 
-![Multi-modal U-Net](designSystem/BrainU-backend/img/mmunet.png)
 
-模型参数结构：
+## 反馈
 
-![模型参数表](designSystem/BrainU-backend/img/paaramtable.png)
-![模型参数表 2](designSystem/BrainU-backend/img/table2.png)
-![模型参数表 3](designSystem/BrainU-backend/img/table3.png)
-
-训练环境：
-
-![训练环境](designSystem/BrainU-backend/img/env.png)
-![训练环境 2](designSystem/BrainU-backend/img/env2.png)
-
-神经网络结构参数：
-
-![U-Net 参数](designSystem/BrainU-backend/img/unetparams.png)
-
-- `batch_size`：每次训练使用的样本数。
-- `epoch`：完整遍历训练数据的轮数。
-- `patience`：验证指标连续无提升时允许等待的轮数。
-- `learning rate drop`：训练过程中学习率下降策略。
-- `early stop`：验证性能不再提升时提前结束训练。
-- `initial learning rate`：初始学习率，实验使用 Adam 优化器。
-
-实验展示中，从左到右为 Flair、T1、T1c、T2、模型预测掩模和真实掩模：
-
-![实验结果](designSystem/BrainU-backend/img/result.png)
-
-历史实验记录中的 IoU：标签 0 为 99.6%，标签 1、2、3、4 分别为 78.4%、83.9%、75% 和 87.2%。这些数值来自既有实验展示，不代表医疗产品性能承诺。
-
-![实验结果 2](designSystem/BrainU-backend/img/result1.png)
-
-## 设计资料
-
-- [系统架构图](designSystem/BrainU-backend/img/system.png)
-- [业务流程图](designSystem/BrainU-backend/img/process.png)
-- [模块设计图](designSystem/BrainU-backend/img/design.png)
-- [系统用例图](designSystem/BrainU-backend/img/use.png)
-- [肿瘤分割时序图](designSystem/BrainU-backend/img/timep.png)
-
-## 界面截图
-
-### 登录
-
-![登录](designSystem/BrainU-backend/img/login.png)
-
-### 数据添加
-
-![数据添加](designSystem/BrainU-backend/img/add.png)
-![数据添加 2](designSystem/BrainU-backend/img/add2.png)
-
-### 工作空间
-
-![工作空间](designSystem/BrainU-backend/img/p1.png)
-![工作空间 2](designSystem/BrainU-backend/img/p2.png)
-
-### 肿瘤交互
-
-![肿瘤交互](designSystem/BrainU-backend/img/tumor.png)
-
-### 模型与医生管理
-
-![模型管理](designSystem/BrainU-backend/img/model.png)
-![医生管理](designSystem/BrainU-backend/img/doctor.png)
-
-## 作者与反馈
-
-- GitHub：[@change-everything](https://github.com/change-everything)
-- Email：pyptsguas@163.com
-
+如果你有任何反馈，请联系我：pyptsguas@163.com
