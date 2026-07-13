@@ -3,7 +3,11 @@
 # @author: peiYP
 
 
-import socket
+import logging
+import os
+from threading import Lock
+
+from flask import Flask, jsonify, request
 from data_loader.data_loader_self import DataLoaderSelf
 
 from src.utils import *
@@ -32,7 +36,8 @@ batch_size = 32
 # multi-GPU
 cuda_available = torch.cuda.is_available()
 device_ids = [0]  # multi-GPU
-torch.cuda.set_device(device_ids[0])
+if cuda_available:
+    torch.cuda.set_device(device_ids[0])
 
 def load_model(modelPath, modelName):
     if (modelName == "U-Net模型"):
@@ -43,7 +48,8 @@ def load_model(modelPath, modelName):
         net = net.cuda()
         net = nn.DataParallel(net, device_ids=device_ids)
 
-    state_dict = torch.load(modelPath)
+    map_location = None if cuda_available else torch.device("cpu")
+    state_dict = torch.load(modelPath, map_location=map_location)
     net.load_state_dict(state_dict)
     return net
 
@@ -112,24 +118,6 @@ def evaluation(net, test_dataset, criterion, save_dir=None, model_dir=None):
 
 
 
-End = 'end send' # 这里是为了判断对应的客户端请求命令的结束标志，目的是为了接受超过1024个字符的(client)客户端请求。
-def recv_end(the_socket):
-    total_data = []
-    while True:
-        data = the_socket.recv(8192).decode('utf-8')
-        if End in data:
-            total_data.append(data[:data.find(End)])
-            break
-        total_data.append(data)
-        if len(total_data) > 1:
-            # check if end_of_data was split
-            last_pair = total_data[-2] + total_data[-1]
-            if End in last_pair:
-                total_data[-2] = last_pair[:last_pair.find(End)]
-                total_data.pop()
-                break
-    return ''.join(total_data)
-
 def segment(modelPath, filePath, modelName):
     net = load_model(modelPath, modelName)
 
@@ -148,28 +136,55 @@ def segment(modelPath, filePath, modelName):
     return img_path
 
 
+app = Flask(__name__)
+inference_lock = Lock()
+logging.basicConfig(level=os.getenv("BRAINU_AI_LOG_LEVEL", "INFO"))
+logger = logging.getLogger("brainu-ai")
 
-HOST = ''  # Symbolic name meaning all available interfaces
-PORT = 50007  # Arbitrary non-privileged port
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((HOST, PORT))
-s.listen(1)
-while 1:
-    conn, addr = s.accept()
-    print('Connected by', addr)
-    data = recv_end(conn)
-    method = data[0]
-    subdata = data[1:]
-    if (method == "1"):  # 当客户端传递过来的第一个字符为1时，params表示传递过来的参数
-        params = subdata.split("|")
-        # 这里写要调用的函数
-        print(params[0], params[1], params[2])
-        img_path = segment(params[0], params[1], params[2])
-        # 将结果返回给客户端
-        conn.send(img_path.encode('utf-8'))
 
-    # elif method=='2': #当客户端传递过来的第一个字符为2时
-    #   #需要执行的命令2
+@app.get("/health")
+def health():
+    return jsonify({
+        "status": "ok",
+        "busy": inference_lock.locked(),
+        "device": "cuda" if cuda_available else "cpu"
+    })
 
-    # update plot
-    conn.close()
+
+@app.post("/segment")
+def segment_api():
+    payload = request.get_json(silent=True) or {}
+    model_path = payload.get("modelPath")
+    file_path = payload.get("filePath")
+    model_name = payload.get("modelName")
+
+    missing = [name for name, value in (
+        ("modelPath", model_path),
+        ("filePath", file_path),
+        ("modelName", model_name)
+    ) if not value]
+    if missing:
+        return jsonify({"message": "Missing required fields: " + ", ".join(missing)}), 400
+    if not os.path.isfile(model_path):
+        return jsonify({"message": "Model file does not exist"}), 400
+    if not os.path.isdir(file_path):
+        return jsonify({"message": "MRI input directory does not exist"}), 400
+    if not inference_lock.acquire(blocking=False):
+        return jsonify({"message": "Inference service is busy"}), 409
+
+    try:
+        logger.info("Starting segmentation with model %s", model_name)
+        image_path = segment(model_path, file_path, model_name)
+        logger.info("Segmentation completed")
+        return jsonify({"imagePath": image_path})
+    except Exception:
+        logger.exception("Segmentation failed")
+        return jsonify({"message": "Segmentation failed; check Python service logs"}), 500
+    finally:
+        inference_lock.release()
+
+
+if __name__ == "__main__":
+    host = os.getenv("BRAINU_AI_HOST", "127.0.0.1")
+    port = int(os.getenv("BRAINU_AI_PORT", "50007"))
+    app.run(host=host, port=port, threaded=True, use_reloader=False)

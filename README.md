@@ -173,23 +173,23 @@ brainu:
 
 并使用 `Paths.get(uploadDir, fileId, originalFilename)` 创建父目录。Java 与 Python 必须能够访问同一份上传文件。
 
-### 5. Python 与 Java 当前要求同机运行
+### 5. Python HTTP 服务与 Java 默认同机运行
 
-Java 后端将推理服务地址写死为：
+Python 现在通过 HTTP 提供 `POST /segment`，Java 默认调用：
 
 ```text
-127.0.0.1:50007
+http://127.0.0.1:50007
 ```
 
-因此当前最稳妥的部署方式是让 Java 和 Python 运行在同一台服务器，并共享本地文件系统。如果拆成两个 Docker 容器或两台服务器，需要同时完成：
+地址可通过 `brainu.ai.base-url` 或环境变量 `BRAINU_AI_BASE_URL` 修改。由于 Java 传给 Python 的仍是本地 MRI 目录路径，当前最稳妥的部署方式仍是让 Java 和 Python 运行在同一台服务器，并共享本地文件系统。如果拆成两个 Docker 容器或两台服务器，需要同时完成：
 
-- 将 Python host、port 改为配置项。
 - 使用共享卷或对象存储传递原始 MRI 文件。
-- 为 TCP 调用增加超时、失败重试和任务状态。
+- 只在可信内网暴露 Python HTTP 端口。
+- 根据推理耗时设置 HTTP 读取超时、失败重试和任务状态。
 
 ### 6. 当前 Python 推理流程默认需要 CUDA
 
-`python_server/server.py` 会设置 CUDA 设备。没有 NVIDIA GPU 或 CUDA 环境时，需要先将 `torch.cuda.set_device(...)` 放入 `torch.cuda.is_available()` 判断中，并使用 CPU 版本 PyTorch。CPU 可以运行，但完整体数据推理会明显变慢。
+`python_server/server.py` 会在 CUDA 可用时设置 GPU，否则自动回退到 CPU。CPU 可以运行，但完整体数据推理会明显变慢；模型权重也必须兼容当前设备和网络结构。
 
 ### 7. 输入数据不是任意 MRI 文件
 
@@ -412,6 +412,13 @@ minio:
   endpoint: http://127.0.0.1:9000
   user-name: brainu-admin
   password: replace-with-a-strong-password
+
+brainu:
+  ai:
+    base-url: http://127.0.0.1:50007
+    connect-timeout: 5000
+    read-timeout: 1800000
+    connection-request-timeout: 5000
 ```
 
 创建最小权限数据库用户：
@@ -441,10 +448,10 @@ PyTorch 应按显卡和 CUDA 版本从官方渠道安装。安装其他依赖：
 
 ```bash
 python -m pip install --upgrade pip
-pip install numpy SimpleITK imageio Pillow opencv-python-headless minio matplotlib scipy
+pip install -r requirements.txt
 ```
 
-还需要安装 `torch`。例如 CPU 调试环境可安装 CPU 版本；GPU 环境必须选择与 CUDA 对应的版本。项目没有提交经过锁定验证的 `requirements.txt`，首次部署后应执行：
+`requirements.txt` 包含 `torch`，但 GPU 环境通常应先按 CUDA 版本安装 PyTorch，再安装其余依赖。首次验证后建议锁定实际版本：
 
 ```bash
 pip freeze > requirements.lock.txt
@@ -469,15 +476,13 @@ source .venv/bin/activate
 python server.py
 ```
 
-确认端口：
+验证 HTTP 健康检查：
 
 ```bash
-# Linux
-ss -lntp | grep 50007
-
-# Windows PowerShell
-Get-NetTCPConnection -LocalPort 50007
+curl http://127.0.0.1:50007/health
 ```
+
+预期返回 `status: ok`，并显示当前使用 `cuda` 或 `cpu`。Python 接口还提供 `POST /segment`，该接口只应由 Java 后端在内网调用。
 
 ### 8. 启动 Spring Boot 后端
 
@@ -551,7 +556,7 @@ Redis
   ↓
 MinIO
   ↓
-Python 推理服务 :50007
+Python HTTP 推理服务 :50007
   ↓
 Spring Boot :8000/api
   ↓
@@ -610,6 +615,10 @@ SPRING_REDIS_DATABASE=10
 MINIO_ENDPOINT=https://minio.example.com
 MINIO_USER_NAME=brainu-app
 MINIO_PASSWORD=replace-me
+BRAINU_AI_BASE_URL=http://127.0.0.1:50007
+BRAINU_AI_CONNECT_TIMEOUT=5000
+BRAINU_AI_READ_TIMEOUT=1800000
+BRAINU_AI_CONNECTION_REQUEST_TIMEOUT=5000
 SERVER_PORT=8000
 SERVER_SERVLET_CONTEXT_PATH=/api
 ```
@@ -686,7 +695,7 @@ WorkingDirectory=/opt/brainu/current/python_server
 EnvironmentFile=-/etc/brainu/python.env
 Environment=PYTHONUNBUFFERED=1
 Environment=CUDA_VISIBLE_DEVICES=0
-ExecStart=/opt/brainu/venv/bin/python /opt/brainu/current/python_server/server.py
+ExecStart=/opt/brainu/venv/bin/gunicorn --bind 127.0.0.1:50007 --workers 1 --threads 4 --timeout 1800 server:app
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30
@@ -801,7 +810,7 @@ sudo systemctl reload nginx
 | --- | --- | --- |
 | 80/443 | Nginx | 是 |
 | 8000 | Spring Boot | 否，仅本机或内网 |
-| 50007 | Python TCP | 否，仅本机 |
+| 50007 | Python HTTP 推理接口 | 否，仅本机或可信内网 |
 | 3306 | MySQL | 否 |
 | 6379 | Redis | 否 |
 | 9000 | MinIO API | 通过 HTTPS 反代或受控网络 |
@@ -865,7 +874,7 @@ mc mirror --overwrite production/brainu /backup/brainu-minio
 2. 多个 `application.yml` 和 `bootstrap.properties` 写死了远程地址及凭据。
 3. 各服务需统一数据库、Redis、MinIO 和 Nacos 配置来源。
 4. Gateway 端口为 88，前端生产 `/api` 路由需要相应调整。
-5. Python Socket 和本地文件共享问题仍然存在。
+5. Python HTTP 服务与 Java 之间仍然需要共享 MRI 文件路径。
 
 完成改造后的启动顺序应为：
 
@@ -930,7 +939,7 @@ sudo systemctl reload nginx
 - 检查 Java 进程对上传目录的写权限。
 - 检查 Nginx 与 Spring 的 1 GB 上传限制。
 
-### 点击分割后连接被拒绝
+### 点击分割后 Python 接口连接失败
 
 ```text
 Connection refused: 127.0.0.1:50007
@@ -938,7 +947,8 @@ Connection refused: 127.0.0.1:50007
 
 - Python 服务未启动。
 - Python 启动时因 CUDA、模型或依赖错误退出。
-- Java 与 Python 不在同一网络命名空间。
+- `brainu.ai.base-url` 配置错误，或 Java 与 Python 不在同一网络命名空间。
+- 可先执行 `curl http://127.0.0.1:50007/health` 验证服务。
 
 ### Python 找不到模型
 
