@@ -8,6 +8,7 @@ import com.peiyp.brainu.entity.ModelInfo;
 import com.peiyp.brainu.entity.NotifyInfo;
 import com.peiyp.brainu.entity.PatientInfo;
 import com.peiyp.brainu.mapper.BrainFileMapper;
+import com.peiyp.brainu.integration.ai.AiInferenceClient;
 import com.peiyp.brainu.res.Constants;
 import com.peiyp.brainu.service.IModelInfoService;
 import com.peiyp.brainu.service.INotifyInfoService;
@@ -22,8 +23,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +44,8 @@ public class SegmentServiceImpl implements SegmentService {
     private IModelInfoService modelInfoService;
     @Resource
     private INotifyInfoService notifyInfoService;
+    @Resource
+    private AiInferenceClient aiInferenceClient;
 
     public static String path = "";
 
@@ -106,24 +107,21 @@ public class SegmentServiceImpl implements SegmentService {
         String modelPath = data.getModelPath();
         String modelName = data.getModelName();
         try {
-            String message = "1" + modelPath + "|" + uploadPath + "|" + modelName + "end send";
-            String serverMsg = this.getSocketServerMsg("127.0.0.1", 50007, message);
-            String[] split = serverMsg.split("\\|");
-            System.out.println(serverMsg);
-            path = split[0];
-            if (!"".equals(serverMsg)) {
+            String imagePath = aiInferenceClient.segment(modelPath, uploadPath, modelName);
+            path = imagePath;
+            if (imagePath != null && !imagePath.trim().isEmpty()) {
                 PatientInfo patientInfo = patientInfoService.getById(Long.parseLong(patientId));
                 patientInfo.setIsHandle(1);
                 String doctorId = (String) request.getAttribute("doctorId");
                 patientInfo.setHandleBy(doctorId);
-                patientInfo.setImgPath(split[0]);
+                patientInfo.setImgPath(imagePath);
                 patientInfo.setUpdateTime(new Date());
                 patientInfoService.save(patientInfo);
                 NotifyInfo notifyInfo = notifyInfoService.getOne(new LambdaQueryWrapper<NotifyInfo>()
                         .eq(NotifyInfo::getPatientId, patientId));
                 notifyInfo.setIsHandle(1);
                 notifyInfoService.updateById(notifyInfo);
-                return serverMsg;
+                return imagePath;
             }
             return null;
         } catch (Exception e) {
@@ -233,32 +231,5 @@ public class SegmentServiceImpl implements SegmentService {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-    }
-
-
-    private String getSocketServerMsg(String host, int port, String message) throws Exception {
-        // 与服务端建立连接
-        Socket socket = new Socket(host, port);
-        // 获得输出流
-        OutputStream outputStream = socket.getOutputStream();
-        PrintWriter pWriter = new PrintWriter(outputStream);
-        pWriter.write(message);
-        pWriter.flush();
-        // 通过shutdownOutput高速服务器已经发送完数据，后续只能接受数据
-        socket.shutdownOutput();
-        // 获得输入流
-        InputStream inputStream = socket.getInputStream();
-
-        byte[] bytes = new byte[1024];
-        int len;
-        StringBuilder sb = new StringBuilder();
-        while ((len = inputStream.read(bytes)) != -1) {
-            // 注意指定编码格式，发送方和接收方一定要统一，建议使用UTF-8
-            sb.append(new String(bytes, 0, len, StandardCharsets.UTF_8)).append("|");
-        }
-        inputStream.close();
-        outputStream.close();
-        socket.close();
-        return sb.toString();
     }
 }
